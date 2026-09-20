@@ -30,7 +30,7 @@ htmlcov/
 Thumbs.db
 
 # Celery
-celerybeat-schedule
+celerybeat-schedule*
 celerybeat.pid
 
 # Logs
