@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Asset Service — Live Test Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --surface: #131b2e;
+            --surface-hover: #1c2744;
+            --border: #24304f;
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --font: 'Inter', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            padding: 24px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1380px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .title-area h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a5b4fc, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .title-area p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .auth-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--surface);
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        .auth-bar label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .auth-bar input {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 6px 10px;
+            border-radius: 6px;
+            width: 320px;
+        }
+
+        .health-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            cursor: pointer;
+        }
+        .health-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 1024px) {
+            .layout-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding-bottom: 12px;
+        }
+        .card-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .endpoint-pill {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .form-group input, .form-group select {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 0.88rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary-light);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 26px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .checkbox-group input { cursor: pointer; }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.08);
+            color: #cbd5e1;
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.35);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.83rem;
+            margin-top: 8px;
+        }
+        .data-table th, .data-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .data-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        .data-table tr:hover {
+            background: var(--surface-hover);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+        .badge-AVAILABLE { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-CHECKED_OUT { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .badge-MAINTENANCE { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .metric-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: var(--font-mono);
+        }
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .console-card {
+            grid-column: 1 / -1;
+            background: #060911;
+            border: 1px solid var(--border);
+        }
+        .console-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        .console-pre {
+            background: #03060c;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+            padding: 14px;
+            color: #38bdf8;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            max-height: 280px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .status-pill {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .status-2xx { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .status-4xx { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .status-5xx { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title-area">
+                <h1>Field Asset Check-Out Service</h1>
+                <p>Interactive Live Test & Verification Console</p>
+            </div>
+            <div class="auth-bar">
+                <label>Token:</label>
+                <input type="text" id="apiToken" value="a40f74ba82743b103305fff7d0264aac747bbbfe">
+                <div class="health-badge" id="healthBadge" onclick="checkHealth()">
+                    <span class="health-dot"></span>
+                    <span id="healthText">Health: Checking...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="layout-grid">
+            <!-- 1. Assets Explorer -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📦 Assets Explorer</h2>
+                    <span class="endpoint-pill">GET /api/v1/assets/</span>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="assetCategory">
+                            <option value="">All Categories</option>
+                            <option value="CAMERA">Camera</option>
+                            <option value="LAPTOP">Laptop</option>
+                            <option value="SENSOR">Sensor</option>
+                            <option value="VEHICLE">Vehicle</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="assetStatus">
+                            <option value="">All Statuses</option>
+                            <option value="AVAILABLE">Available</option>
+                            <option value="CHECKED_OUT">Checked Out</option>
+                            <option value="MAINTENANCE">Maintenance</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Search</label>
+                        <input type="text" id="assetSearch" placeholder="Tag or Name...">
+                    </div>
+                </div>
+                <button class="btn" onclick="fetchAssets()">Filter / Refresh Assets</button>
+                <div style="max-height: 220px; overflow-y: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tag</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assetsTableBody">
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Click Refresh to load assets</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. Check-Out Asset Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>⚡ Check-Out Equipment</h2>
+                    <span class="endpoint-pill">POST /api/v1/checkouts/</span>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                    Applies business rules 1–5, 7 (row locking) and 8 (404 on unknown tag).
+                </p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Asset Tag</label>
+                        <input type="text" id="checkoutAssetTag" value="LAP-002">
+                    </div>
+                    <div class="form-group">
+                        <label>Employee Code</label>
+                        <input type="text" id="checkoutEmpCode" value="EMP003">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Due Date & Time (Within 30 days)</label>
+                    <input type="datetime-local" id="checkoutDueAt">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" onclick="createCheckout()" style="flex: 1;">Create Check-Out (201)</button>
+                    <button class="btn btn-danger" onclick="testConcurrency()" title="Sends 2 simultaneous check-out requests for the same asset to test Rule 7">
+                        ⚡ Concurrency Race Test
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3. Return Equipment Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🔄 Return Equipment</h2>
+                    <span class="endpoint-pill">POST /api/v1/checkouts/{id}/return/</span>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                    Applies Rule 6: sets returned_at to now, returns asset to AVAILABLE or MAINTENANCE. Returning an already returned check-out returns 409 Conflict.
+                </p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>CheckOut ID</label>
+                        <input type="number" id="returnCheckoutId" value="1" placeholder="e.g. 1">
+                    </div>
+                    <div class="form-group">
+                        <label>Condition Note</label>
+                        <input type="text" id="returnConditionNote" value="Returned in clean working order">
+                    </div>
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="returnNeedsMaintenance"> Needs Maintenance?
+                    </label>
+                </div>
+                <button class="btn" onclick="returnCheckout()">Submit Return (200)</button>
+            </div>
+
+            <!-- 4. Employee Summary (Database 1-Query Aggregation) -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📊 Employee Summary (ORM Aggregation)</h2>
+                    <span class="endpoint-pill">GET /api/v1/employees/{code}/summary/</span>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="summaryEmpCode" value="EMP001" placeholder="Employee Code (e.g. EMP001)" style="flex: 1; padding: 8px 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 8px; color: white;">
+                    <button class="btn btn-secondary" onclick="fetchEmployeeSummary()">Compute Metrics</button>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <div class="metric-value" id="metricLifetime">-</div>
+                        <div class="metric-label">Lifetime Checkouts</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="metricHeld">-</div>
+                        <div class="metric-label">Currently Held</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="metricOverdue">-</div>
+                        <div class="metric-label">Currently Overdue</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-value" id="metricMeanDays">-</div>
+                        <div class="metric-label">Mean Hold (Days)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Overdue Report -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h2>🚨 Overdue Check-Outs Report</h2>
+                    <div>
+                        <span class="endpoint-pill">GET /api/v1/reports/overdue/</span>
+                        <button class="btn btn-secondary" onclick="fetchOverdueReport()" style="margin-left: 10px; padding: 4px 10px;">Load Overdue Report</button>
+                    </div>
+                </div>
+                <div style="max-height: 200px; overflow-y: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>CheckOut ID</th>
+                                <th>Asset Tag</th>
+                                <th>Asset Name</th>
+                                <th>Employee Code</th>
+                                <th>Employee Name</th>
+                                <th>Days Overdue</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overdueTableBody">
+                            <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Click "Load Overdue Report" to fetch live report</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 6. Live Response Console -->
+            <div class="card console-card">
+                <div class="console-header">
+                    <div>
+                        <span>API Console Output: </span>
+                        <span id="consoleUrl" style="color: #cbd5e1; font-family: var(--font-mono);">-</span>
+                    </div>
+                    <div id="consoleStatus">-</div>
+                </div>
+                <pre class="console-pre" id="consoleOutput">// Live JSON response payloads will appear here...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setDefaultDueDate() {
+            const date = new Date();
+            date.setDate(date.getDate() + 7);
+            const iso = date.toISOString().slice(0, 16);
+            document.getElementById('checkoutDueAt').value = iso;
+        }
+        setDefaultDueDate();
+
+        function getHeaders() {
+            const token = document.getElementById('apiToken').value.trim();
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) {
+                headers['Authorization'] = 'Token ' + token;
+            }
+            return headers;
+        }
+
+        function logConsole(method, url, status, data) {
+            document.getElementById('consoleUrl').textContent = `${method} ${url}`;
+            const statusBadge = document.getElementById('consoleStatus');
+            statusBadge.textContent = status ? `HTTP ${status}` : 'ERROR';
+            statusBadge.className = 'status-pill ' + (status >= 200 && status < 300 ? 'status-2xx' : (status >= 400 && status < 500 ? 'status-4xx' : 'status-5xx'));
+            document.getElementById('consoleOutput').textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        }
+
+        async function checkHealth() {
+            try {
+                const res = await fetch('/api/v1/health/');
+                const data = await res.json();
+                const badge = document.getElementById('healthBadge');
+                const text = document.getElementById('healthText');
+                if (res.ok && data.status === 'ok') {
+                    text.textContent = 'DB: ' + data.database;
+                    badge.style.color = 'var(--success)';
+                } else {
+                    text.textContent = 'Disconnected';
+                    badge.style.color = 'var(--danger)';
+                }
+                logConsole('GET', '/api/v1/health/', res.status, data);
+            } catch (err) {
+                document.getElementById('healthText').textContent = 'Server Offline';
+                logConsole('GET', '/api/v1/health/', 0, { error: err.message });
+            }
+        }
+        checkHealth();
+
+        async function fetchAssets() {
+            const cat = document.getElementById('assetCategory').value;
+            const stat = document.getElementById('assetStatus').value;
+            const search = document.getElementById('assetSearch').value;
+
+            const params = new URLSearchParams();
+            if (cat) params.append('category', cat);
+            if (stat) params.append('status', stat);
+            if (search) params.append('search', search);
+
+            const url = '/api/v1/assets/?' + params.toString();
+            try {
+                const res = await fetch(url, { headers: getHeaders() });
+                const data = await res.json();
+                logConsole('GET', url, res.status, data);
+
+                const tbody = document.getElementById('assetsTableBody');
+                tbody.innerHTML = '';
+                const items = data.results || data;
+                if (!items || items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No assets found.</td></tr>';
+                    return;
+                }
+                items.forEach(a => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${a.id}</td>
+                        <td style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">${a.asset_tag}</td>
+                        <td>${a.name}</td>
+                        <td>${a.category}</td>
+                        <td><span class="badge badge-${a.status}">${a.status}</span></td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.72rem;" onclick="inspectAsset(${a.id}, '${a.asset_tag}')">Details</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                logConsole('GET', url, 0, { error: err.message });
+            }
+        }
+
+        async function inspectAsset(id, tag) {
+            document.getElementById('checkoutAssetTag').value = tag;
+            const url = `/api/v1/assets/${id}/`;
+            try {
+                const res = await fetch(url, { headers: getHeaders() });
+                const data = await res.json();
+                logConsole('GET', url, res.status, data);
+            } catch (err) {
+                logConsole('GET', url, 0, { error: err.message });
+            }
+        }
+
+        async function createCheckout() {
+            const tag = document.getElementById('checkoutAssetTag').value.trim();
+            const emp = document.getElementById('checkoutEmpCode').value.trim();
+            const dueAtVal = document.getElementById('checkoutDueAt').value;
+            const dueAt = new Date(dueAtVal).toISOString();
+
+            const url = '/api/v1/checkouts/';
+            const payload = { asset_tag: tag, employee_code: emp, due_at: dueAt };
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                logConsole('POST', url, res.status, data);
+                if (res.ok && data.id) {
+                    document.getElementById('returnCheckoutId').value = data.id;
+                }
+                fetchAssets();
+            } catch (err) {
+                logConsole('POST', url, 0, { error: err.message });
+            }
+        }
+
+        async function testConcurrency() {
+            const tag = document.getElementById('checkoutAssetTag').value.trim();
+            const dueAtVal = document.getElementById('checkoutDueAt').value;
+            const dueAt = new Date(dueAtVal).toISOString();
+
+            logConsole('CONCURRENCY TEST', '/api/v1/checkouts/', '-', 'Firing 2 concurrent check-out requests for ' + tag + '...');
+
+            const req1 = fetch('/api/v1/checkouts/', {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ asset_tag: tag, employee_code: 'EMP001', due_at: dueAt })
+            }).then(async r => ({ status: r.status, data: await r.json() }));
+
+            const req2 = fetch('/api/v1/checkouts/', {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ asset_tag: tag, employee_code: 'EMP002', due_at: dueAt })
+            }).then(async r => ({ status: r.status, data: await r.json() }));
+
+            const [res1, res2] = await Promise.all([req1, req2]);
+
+            logConsole('CONCURRENCY RESULTS', '/api/v1/checkouts/', `${res1.status} & ${res2.status}`, {
+                Request_1: { employee: 'EMP001', status: res1.status, body: res1.data },
+                Request_2: { employee: 'EMP002', status: res2.status, body: res2.data },
+                Rule_7_Evaluation: (res1.status === 201 && res2.status === 409) || (res2.status === 201 && res1.status === 409)
+                    ? "SUCCESS: Exactly one request succeeded (201) and one received Conflict (409)!"
+                    : "FAILED: Check responses"
+            });
+            fetchAssets();
+        }
+
+        async function returnCheckout() {
+            const id = document.getElementById('returnCheckoutId').value;
+            const note = document.getElementById('returnConditionNote').value;
+            const needsMaint = document.getElementById('returnNeedsMaintenance').checked;
+
+            const url = `/api/v1/checkouts/${id}/return/`;
+            const payload = { condition_note: note, needs_maintenance: needsMaint };
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                logConsole('POST', url, res.status, data);
+                fetchAssets();
+            } catch (err) {
+                logConsole('POST', url, 0, { error: err.message });
+            }
+        }
+
+        async function fetchEmployeeSummary() {
+            const code = document.getElementById('summaryEmpCode').value.trim();
+            const url = `/api/v1/employees/${code}/summary/`;
+            try {
+                const res = await fetch(url, { headers: getHeaders() });
+                const data = await res.json();
+                logConsole('GET', url, res.status, data);
+
+                if (res.ok) {
+                    document.getElementById('metricLifetime').textContent = data.lifetime_checkouts;
+                    document.getElementById('metricHeld').textContent = data.currently_held;
+                    document.getElementById('metricOverdue').textContent = data.currently_overdue;
+                    document.getElementById('metricMeanDays').textContent = data.mean_hold_duration_days !== null ? data.mean_hold_duration_days : 'N/A';
+                }
+            } catch (err) {
+                logConsole('GET', url, 0, { error: err.message });
+            }
+        }
+
+        async function fetchOverdueReport() {
+            const url = '/api/v1/reports/overdue/';
+            try {
+                const res = await fetch(url, { headers: getHeaders() });
+                const data = await res.json();
+                logConsole('GET', url, res.status, data);
+
+                const tbody = document.getElementById('overdueTableBody');
+                tbody.innerHTML = '';
+                const items = data.results || data;
+                if (!items || items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No overdue checkouts!</td></tr>';
+                    return;
+                }
+                items.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row.id}</td>
+                        <td style="font-family: var(--font-mono); color: var(--accent); font-weight: 600;">${row.asset_tag}</td>
+                        <td>${row.asset_name}</td>
+                        <td>${row.employee_code}</td>
+                        <td>${row.employee_name}</td>
+                        <td><span class="badge badge-MAINTENANCE" style="font-size: 0.8rem;">${row.days_overdue} days</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                logConsole('GET', url, 0, { error: err.message });
+            }
+        }
+
+        // Initial fetch
+        fetchAssets();
+        fetchEmployeeSummary();
+    </script>
+</body>
+</html>
