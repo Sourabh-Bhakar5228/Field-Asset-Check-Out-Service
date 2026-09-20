@@ -79,6 +79,71 @@ python manage.py runserver 127.0.0.1:8000
 
 ---
 
+## Interactive Live Test Dashboard
+
+An interactive dark-mode dashboard is mounted directly at the service root:
+👉 **`http://localhost:8000/`** (or `http://127.0.0.1:8000/`)
+
+### Dashboard Features:
+1. **Live Health & Token Bar:** Displays real-time database connection status (`DB: connected`) and pre-fills the seeded admin token (`a40f74ba82743b103305fff7d0264aac747bbbfe`). Clearing this input allows immediate verification of `401 Unauthorized` responses.
+2. **Assets Explorer & Dynamic Filtering:** Filter live equipment by category (`CAMERA`, `LAPTOP`, `SENSOR`, `VEHICLE`) or status (`AVAILABLE`, `CHECKED_OUT`, `MAINTENANCE`), with instant detail modal inspection.
+3. **Check-Out Dispatcher & Conflict Guard:** Dispatch checkouts for employees. Demonstrates immediate **`201 Created`** on success and **`409 Conflict`** when attempting to check out an already held asset (Rule 1 & Rule 7).
+4. **Live Concurrency Stress Button:** Fires two simultaneous check-out requests for the same asset (`EMP001` and `EMP002`) over `Promise.all()`, visibly demonstrating race-condition safety (one request returns `201`, the other returns `409`).
+5. **Return Item:** Return active check-outs with condition notes, optionally setting `needs_maintenance: true` to toggle equipment into `MAINTENANCE`.
+6. **Aggregated Employee Metrics:** Real-time single-query ORM calculation of lifetime checkouts, currently held items, overdue items, and mean hold duration in days.
+7. **Overdue Report:** Tabular inspection of past-due check-outs ordered by most overdue.
+8. **Real-time API Console:** Live interactive inspector displaying the exact HTTP method, endpoint, status code badge (2xx, 4xx, 5xx), and formatted JSON response payload.
+
+---
+
+## Updating & Maintenance Cheat Sheet
+
+Quick commands for updating and maintaining the service:
+
+### 1. Docker Update & Restart Commands
+```bash
+# Rebuild containers after code modifications
+docker compose up -d --build
+
+# Run database migrations
+docker compose exec web python manage.py migrate
+
+# Re-seed test database with fresh assets and employees
+docker compose exec web python manage.py seed_demo_data
+
+# Run all 22 automated tests inside Docker
+docker compose exec web pytest
+
+# Inspect real-time Celery background task and worker logs
+docker compose logs -f celery_worker
+```
+
+### 2. Local Python Environment Commands
+```bash
+# Activate virtual environment (Windows PowerShell)
+.\.venv\Scripts\Activate.ps1
+
+# Run local development server
+python manage.py runserver 127.0.0.1:8000
+
+# Run local test suite
+pytest
+```
+
+### 3. Git Save & Update Commands
+```bash
+# Stage all updated files
+git add .
+
+# Commit updates with descriptive message
+git commit -m "docs: update README with live dashboard documentation and maintenance commands"
+
+# Push to your repository
+git push origin main
+```
+
+---
+
 ## Authentication & API Credentials
 
 All endpoints under `/api/v1/` require token authentication, except the health check (`/api/v1/health/`).
