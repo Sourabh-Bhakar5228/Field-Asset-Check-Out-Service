@@ -1,0 +1,105 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: artikate_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: artikate_db
+      POSTGRES_USER: artikate_user
+      POSTGRES_PASSWORD: artikate_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artikate_user -d artikate_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: artikate_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: artikate_web
+    restart: unless-stopped
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-artikate-field-asset-assessment-secret-key-2026
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=artikate_db
+      - DB_USER=artikate_user
+      - DB_PASSWORD=artikate_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_worker:
+    build: .
+    container_name: artikate_celery_worker
+    restart: unless-stopped
+    command: celery -A config worker -l info
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-artikate-field-asset-assessment-secret-key-2026
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=artikate_db
+      - DB_USER=artikate_user
+      - DB_PASSWORD=artikate_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_beat:
+    build: .
+    container_name: artikate_celery_beat
+    restart: unless-stopped
+    command: celery -A config beat -l info
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-artikate-field-asset-assessment-secret-key-2026
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=artikate_db
+      - DB_USER=artikate_user
+      - DB_PASSWORD=artikate_password
+      - DB_HOST=db
+      - DB_PORT=5432
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
